@@ -11,7 +11,7 @@ export const FloatingWhatsApp: React.FC = () => {
   );
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+    <div className="fixed bottom-20 sm:bottom-24 right-5 sm:right-6 z-50 flex flex-col items-end">
       {/* Tooltip bubble on hover */}
       {showTooltip && (
         <div className="mb-2 px-3 py-1.5 rounded-lg bg-[#171717] border border-[#262626] text-xs text-white shadow-xl max-w-[220px] text-right animate-in fade-in slide-in-from-bottom-2 duration-150">
