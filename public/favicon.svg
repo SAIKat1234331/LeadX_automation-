@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#0B0B0B"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="none" stroke="#262626" stroke-width="2"/>
+  <!-- Geometric LX Monogram -->
+  <!-- L shape -->
+  <path d="M16 18 V46 H30" fill="none" stroke="#00FF88" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- X shape: overlapping diagonal with tech node cuts -->
+  <path d="M34 22 L48 42" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M48 22 L34 42" fill="none" stroke="#00FF88" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Subtle cyber accent dot -->
+  <circle cx="48" cy="22" r="2.5" fill="#00FF88"/>
+</svg>

@@ -1,0 +1,6 @@
+{
+  "name": "LEADX AUTOMATION",
+  "description": "LEADX AUTOMATION helps businesses streamline repetitive tasks, manage leads, and build intelligent AI-powered workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
