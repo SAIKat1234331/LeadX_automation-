@@ -87,7 +87,6 @@ export const Footer: React.FC<FooterProps> = ({
                 { name: 'Pricing', id: 'pricing' },
                 { name: 'About', id: 'about' },
                 { name: 'FAQ', id: 'faq' },
-                { name: 'Contact', id: 'contact' },
               ].map((link) => (
                 <li key={link.id}>
                   <a
@@ -142,8 +141,9 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
             <div className="mt-3">
               <a
-                href="#contact"
-                onClick={(e) => handleLinkClick(e, 'contact')}
+                href="https://wa.me/919332699034?text=Hello%20LEADX%20AUTOMATION%2C%20I%20would%20like%20to%20discuss%20an%20automation%20project%20for%20my%20business."
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center w-full py-2 px-3 rounded-lg bg-[#171717] border border-[#262626] text-xs font-medium text-white hover:border-[#00FF88]/50 hover:text-[#00FF88] transition-all"
               >
                 Discuss Your Project

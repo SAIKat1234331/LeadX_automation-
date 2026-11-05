@@ -13,7 +13,6 @@ const NAV_LINKS = [
   { label: 'Portfolio', href: '#portfolio' },
   { label: 'About', href: '#about' },
   { label: 'FAQ', href: '#faq' },
-  { label: 'Contact', href: '#contact' },
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
@@ -128,8 +127,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
           {/* Primary Action CTA */}
           <div className="hidden md:flex items-center gap-3">
             <a
-              href="#contact"
-              onClick={(e) => handleLinkClick(e, '#contact')}
+              href="https://wa.me/919332699034?text=Hello%20LEADX%20AUTOMATION%2C%20I%20would%20like%20to%20discuss%20an%20automation%20project%20for%20my%20business."
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00FF88] text-[#0B0B0B] font-semibold text-xs lg:text-sm transition-all duration-200 hover:bg-[#00e077] hover:shadow-[0_0_20px_rgba(0,255,136,0.25)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               <span>Discuss Your Project</span>
@@ -140,8 +140,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
           {/* Mobile Menu Toggle Button */}
           <div className="flex md:hidden items-center gap-2">
             <a
-              href="#contact"
-              onClick={(e) => handleLinkClick(e, '#contact')}
+              href="https://wa.me/919332699034?text=Hello%20LEADX%20AUTOMATION%2C%20I%20would%20like%20to%20discuss%20an%20automation%20project%20for%20my%20business."
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-3 py-1.5 rounded-md bg-[#00FF88] text-[#0B0B0B] font-semibold text-xs"
             >
               Discuss
@@ -185,8 +186,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
           <div className="mt-4 pt-4 border-t border-[#262626] flex flex-col gap-2.5">
             <a
-              href="#contact"
-              onClick={(e) => handleLinkClick(e, '#contact')}
+              href="https://wa.me/919332699034?text=Hello%20LEADX%20AUTOMATION%2C%20I%20would%20like%20to%20discuss%20an%20automation%20project%20for%20my%20business."
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-[#00FF88] text-[#0B0B0B] font-semibold text-sm hover:bg-[#00e077]"
             >
               <span>Discuss Your Project</span>

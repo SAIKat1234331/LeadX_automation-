@@ -59,11 +59,15 @@ export interface FaqItem {
 export interface ContactFormData {
   fullName: string;
   email: string;
+  phone: string;
   businessName: string;
+  businessType: string;
   serviceRequired: string;
-  projectDescription: string;
   budgetRange: string;
   contactMethod: string;
+  projectDescription: string;
+  currentTools: string;
+  timeline: string;
   consent: boolean;
   botField?: string;
 }
@@ -71,6 +75,7 @@ export interface ContactFormData {
 export interface ValidationErrors {
   fullName?: string;
   email?: string;
+  phone?: string;
   serviceRequired?: string;
   projectDescription?: string;
   consent?: string;

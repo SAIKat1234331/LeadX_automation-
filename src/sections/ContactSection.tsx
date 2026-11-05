@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ContactFormData, ValidationErrors } from '../types';
-import { validateContactForm, encodeFormData, generateWhatsAppLink } from '../utils/automation';
+import {
+  validateContactForm,
+  encodeFormData,
+  generateWhatsAppLink,
+  GOOGLE_APPS_SCRIPT_URL,
+  submitToGoogleScript,
+  mapFormDataToSheetPayload,
+} from '../utils/automation';
 import { COMPANY_INFO } from '../data/content';
 import {
   Mail,
@@ -37,17 +44,39 @@ const BUDGET_OPTIONS = [
 
 const CONTACT_METHODS = ['WhatsApp', 'Email', 'Phone Call'];
 
+const BUSINESS_TYPES = [
+  'Small & Medium Business',
+  'Digital Marketing Agency',
+  'E-commerce & Retail',
+  'Real Estate',
+  'Coaching & Education',
+  'Startup / Tech',
+  'Professional Services',
+  'Other',
+];
+
+const TIMELINE_OPTIONS = [
+  'Immediately (Within 1 week)',
+  'Within 2-4 weeks',
+  '1-2 months',
+  'Exploring possibilities',
+];
+
 export const ContactSection: React.FC<ContactSectionProps> = ({
   initialService = '',
 }) => {
   const [formData, setFormData] = useState<ContactFormData>({
     fullName: '',
     email: '',
+    phone: '',
     businessName: '',
+    businessType: 'Small & Medium Business',
     serviceRequired: initialService || '',
-    projectDescription: '',
     budgetRange: 'Not Sure Yet',
     contactMethod: 'WhatsApp',
+    projectDescription: '',
+    currentTools: '',
+    timeline: 'Within 2-4 weeks',
     consent: false,
     botField: '',
   });
@@ -95,6 +124,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent duplicate submissions
     setServerError(null);
 
     // Bot honeypot check
@@ -113,43 +143,75 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Netlify Form Submission
-      const payload: Record<string, string | boolean | undefined> = {
+      // 1. Google Sheets Integration via Google Apps Script Web App
+      // Target: Google Sheet ID 10rXeBUuMo0nE3pL0YLyff75YhvmvjdLlea9nkUvxe88, Tab "Sheet1", Headers in Row 4
+      const googleSheetPayload = mapFormDataToSheetPayload(formData);
+
+      // Send form data via POST with JSON.stringify(formData), mode: "no-cors", and Content-Type: "text/plain;charset=utf-8"
+      // Submission must complete before success confirmation is displayed
+      await submitToGoogleScript(GOOGLE_APPS_SCRIPT_URL, googleSheetPayload);
+
+      // 2. Netlify Form Submission (for Netlify Forms backup)
+      const netlifyPayload: Record<string, string | boolean | undefined> = {
         'form-name': 'leadx-project-enquiry',
         fullName: formData.fullName,
         email: formData.email,
+        phone: formData.phone,
         businessName: formData.businessName,
+        businessType: formData.businessType,
         serviceRequired: formData.serviceRequired,
-        projectDescription: formData.projectDescription,
         budgetRange: formData.budgetRange,
         contactMethod: formData.contactMethod,
+        currentTools: formData.currentTools,
+        timeline: formData.timeline,
+        projectDescription: formData.projectDescription,
         consent: formData.consent,
       };
 
       await fetch('/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: encodeFormData(payload),
+        body: encodeFormData(netlifyPayload),
       }).catch((err) => {
-        // In local preview without Netlify CDN backend, fetch('/') might return 200 or 404, we log it
-        console.info('Netlify POST payload dispatched:', payload);
+        // In local preview without Netlify CDN backend, fetch('/') might return 200 or 404
+        console.info('Netlify POST payload dispatched:', netlifyPayload);
       });
 
-      // Save record in local storage for persistence & verification
+      // Preserve submission record for user confirmation and local cache
+      const submissionRecord = { ...formData };
       const existing = JSON.parse(
         localStorage.getItem('leadx_enquiries') || '[]'
       );
       existing.push({
-        ...formData,
+        ...submissionRecord,
         submittedAt: new Date().toISOString(),
       });
       localStorage.setItem('leadx_enquiries', JSON.stringify(existing));
 
-      setSubmittedData({ ...formData });
+      // Reset the form fields after submission
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        businessName: '',
+        businessType: 'Small & Medium Business',
+        serviceRequired: '',
+        budgetRange: 'Not Sure Yet',
+        contactMethod: 'WhatsApp',
+        projectDescription: '',
+        currentTools: '',
+        timeline: 'Within 2-4 weeks',
+        consent: false,
+        botField: '',
+      });
+
+      setSubmittedData(submissionRecord);
       setIsSubmitting(false);
     } catch (err: any) {
       console.error('Submission error:', err);
-      setServerError('An unexpected error occurred. Please reach out to us directly via WhatsApp or email.');
+      setServerError(
+        'Submission failed. Please check your network connection or contact us directly on WhatsApp (+91 9332699034).'
+      );
       setIsSubmitting(false);
     }
   };
@@ -159,11 +221,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
     setFormData({
       fullName: '',
       email: '',
+      phone: '',
       businessName: '',
+      businessType: 'Small & Medium Business',
       serviceRequired: '',
-      projectDescription: '',
       budgetRange: 'Not Sure Yet',
       contactMethod: 'WhatsApp',
+      projectDescription: '',
+      currentTools: '',
+      timeline: 'Within 2-4 weeks',
       consent: false,
       botField: '',
     });
@@ -298,12 +364,22 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                       <span className="text-zinc-400">Service:</span>{' '}
                       <span className="text-white font-medium">{submittedData.serviceRequired}</span>
                     </div>
+                    {submittedData.phone && (
+                      <div>
+                        <span className="text-zinc-400">Phone / WhatsApp:</span>{' '}
+                        <span className="text-white font-medium">{submittedData.phone}</span>
+                      </div>
+                    )}
                     {submittedData.businessName && (
                       <div>
                         <span className="text-zinc-400">Business:</span>{' '}
-                        <span className="text-white font-medium">{submittedData.businessName}</span>
+                        <span className="text-white font-medium">{submittedData.businessName} ({submittedData.businessType})</span>
                       </div>
                     )}
+                    <div>
+                      <span className="text-zinc-400">Timeline:</span>{' '}
+                      <span className="text-white font-medium">{submittedData.timeline}</span>
+                    </div>
                     <div>
                       <span className="text-zinc-400">Budget Range:</span>{' '}
                       <span className="text-[#00FF88] font-mono">{submittedData.budgetRange}</span>
@@ -425,7 +501,26 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Business Name (Optional) */}
+                    {/* Phone / WhatsApp */}
+                    <div>
+                      <label
+                        htmlFor="phone"
+                        className="block text-xs font-medium text-zinc-300 mb-1.5"
+                      >
+                        Phone / WhatsApp <span className="text-zinc-500">(Optional)</span>
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="+91 98765 43210"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0B0B] border border-[#262626] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-[#00FF88] transition-colors"
+                      />
+                    </div>
+
+                    {/* Business Name */}
                     <div>
                       <label
                         htmlFor="businessName"
@@ -442,6 +537,31 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                         placeholder="e.g. Apex Marketing Pvt Ltd"
                         className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0B0B] border border-[#262626] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-[#00FF88] transition-colors"
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Business Type */}
+                    <div>
+                      <label
+                        htmlFor="businessType"
+                        className="block text-xs font-medium text-zinc-300 mb-1.5"
+                      >
+                        Business Type
+                      </label>
+                      <select
+                        id="businessType"
+                        name="businessType"
+                        value={formData.businessType}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2.5 rounded-lg bg-[#0B0B0B] border border-[#262626] text-xs text-white focus:outline-none focus:border-[#00FF88] transition-colors"
+                      >
+                        {BUSINESS_TYPES.map((bt) => (
+                          <option key={bt} value={bt} className="bg-[#121212]">
+                            {bt}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Service Required (Dropdown) */}
@@ -523,6 +643,50 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                         {CONTACT_METHODS.map((method) => (
                           <option key={method} value={method} className="bg-[#121212]">
                             {method}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Current Software / Tools */}
+                    <div>
+                      <label
+                        htmlFor="currentTools"
+                        className="block text-xs font-medium text-zinc-300 mb-1.5"
+                      >
+                        Current Software / Tools <span className="text-zinc-500">(Optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="currentTools"
+                        name="currentTools"
+                        value={formData.currentTools}
+                        onChange={handleChange}
+                        placeholder="e.g. Google Sheets, WhatsApp, HubSpot"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0B0B0B] border border-[#262626] text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-[#00FF88] transition-colors"
+                      />
+                    </div>
+
+                    {/* Project Timeline */}
+                    <div>
+                      <label
+                        htmlFor="timeline"
+                        className="block text-xs font-medium text-zinc-300 mb-1.5"
+                      >
+                        Project Timeline
+                      </label>
+                      <select
+                        id="timeline"
+                        name="timeline"
+                        value={formData.timeline}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2.5 rounded-lg bg-[#0B0B0B] border border-[#262626] text-xs text-white focus:outline-none focus:border-[#00FF88] transition-colors"
+                      >
+                        {TIMELINE_OPTIONS.map((t) => (
+                          <option key={t} value={t} className="bg-[#121212]">
+                            {t}
                           </option>
                         ))}
                       </select>

@@ -14,18 +14,18 @@ import { PortfolioSection } from './sections/PortfolioSection';
 import { PricingSection } from './sections/PricingSection';
 import { AboutSection } from './sections/AboutSection';
 import { FaqSection } from './sections/FaqSection';
-import { ContactSection } from './sections/ContactSection';
 
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 import { DemoProject } from './types';
+import { COMPANY_INFO } from './data/content';
+import { generateWhatsAppLink } from './utils/automation';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(window.location.pathname);
   const [selectedDemoProject, setSelectedDemoProject] = useState<DemoProject | null>(null);
-  const [selectedServiceForInquiry, setSelectedServiceForInquiry] = useState<string>('');
   const [isDeployModalOpen, setIsDeployModalOpen] = useState<boolean>(false);
 
   // Synchronize browser history / path changes
@@ -43,25 +43,16 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollToContactWithService = (serviceName: string) => {
-    setSelectedServiceForInquiry(serviceName);
-
-    // If currently on legal page or 404, return to home first
-    if (currentPath !== '/') {
-      navigateTo('/');
-      setTimeout(() => {
-        const contactEl = document.getElementById('contact');
-        if (contactEl) {
-          contactEl.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-      return;
-    }
-
-    const contactEl = document.getElementById('contact');
-    if (contactEl) {
-      contactEl.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleConnectWhatsApp = (serviceOrContext?: string) => {
+    const text = serviceOrContext
+      ? `Hello Saikat, I would like to discuss ${serviceOrContext} with LEADX AUTOMATION.`
+      : COMPANY_INFO.whatsappDefaultMsg;
+    const url = generateWhatsAppLink(COMPANY_INFO.phone, text);
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.click();
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -133,7 +124,7 @@ export default function App() {
       {/* Main Single Page Sections */}
       <main className="flex-grow">
         <HeroSection
-          onDiscussClick={() => scrollToSection('contact')}
+          onDiscussClick={() => handleConnectWhatsApp('an automation project')}
           onExploreClick={() => scrollToSection('services')}
         />
 
@@ -141,13 +132,13 @@ export default function App() {
 
         <ServicesSection
           onSelectService={(serviceTitle) =>
-            scrollToContactWithService(serviceTitle)
+            handleConnectWhatsApp(`automation for ${serviceTitle}`)
           }
         />
 
         <SolutionsSection
           onSelectSolution={(industry) =>
-            scrollToContactWithService(`Industry Workflow: ${industry}`)
+            handleConnectWhatsApp(`an industry workflow solution for ${industry}`)
           }
         />
 
@@ -159,15 +150,13 @@ export default function App() {
 
         <PricingSection
           onSelectPackage={(pkgName) =>
-            scrollToContactWithService(`Package: ${pkgName}`)
+            handleConnectWhatsApp(`the ${pkgName} package`)
           }
         />
 
         <AboutSection />
 
         <FaqSection />
-
-        <ContactSection initialService={selectedServiceForInquiry} />
       </main>
 
       {/* Comprehensive Footer */}
@@ -185,7 +174,7 @@ export default function App() {
         project={selectedDemoProject}
         onClose={() => setSelectedDemoProject(null)}
         onSelectForInquiry={(category) =>
-          scrollToContactWithService(category)
+          handleConnectWhatsApp(`implementing ${category}`)
         }
       />
 
